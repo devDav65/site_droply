@@ -1,0 +1,723 @@
+<!DOCTYPE html>
+<html lang="fr" data-theme="dark">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Droply — Partagez des fichiers sans internet.</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;1,9..40,300&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet"/>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+img{max-width:100%;display:block}
+a{text-decoration:none;color:inherit}
+
+:root{
+  --accent:#6c8fff;--accent-dim:#6c8fff18;--accent-border:#6c8fff44;
+  --green:#4ade80;--radius-sm:8px;--radius-md:14px;--radius-lg:20px;
+  --font-display:'Syne',sans-serif;--font-body:'DM Sans',sans-serif;
+  --font-mono:'JetBrains Mono',monospace;--transition:.18s ease;
+}
+[data-theme="dark"]{
+  --bg:#0b0b0f;--bg2:#111118;--bg3:#17171f;--border:#22222e;--border2:#2a2a38;
+  --text:#eeeef5;--text2:#8888a8;--text3:#44445a;--card:#13131a;
+  --card-border:#1e1e2c;--shadow:0 4px 32px #0006;--nav-bg:#0e0e14ee;
+}
+[data-theme="light"]{
+  --bg:#f8f8fc;--bg2:#f0f0f8;--bg3:#e8e8f4;--border:#dddde8;--border2:#c8c8d8;
+  --text:#18182a;--text2:#55557a;--text3:#aaaacc;--card:#ffffff;
+  --card-border:#e0e0ee;--shadow:0 4px 24px #0001;--nav-bg:#ffffffee;
+}
+
+body{
+  font-family:var(--font-body);background:var(--bg);color:var(--text);
+  line-height:1.6;overflow-x:hidden;
+  transition:background var(--transition),color var(--transition);
+}
+body::before{
+  content:'';position:fixed;inset:0;
+  background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");
+  pointer-events:none;z-index:0;opacity:.35;
+}
+
+/* ── Orbs animés ── */
+.orb{position:fixed;border-radius:50%;filter:blur(120px);pointer-events:none;z-index:0;}
+.orb-1{width:600px;height:600px;background:#6c8fff14;top:-200px;left:-100px;animation:orbFloat1 12s ease-in-out infinite;}
+.orb-2{width:400px;height:400px;background:#4ade800c;bottom:0;right:-100px;animation:orbFloat2 15s ease-in-out infinite;}
+@keyframes orbFloat1{0%,100%{transform:translate(0,0)}33%{transform:translate(40px,30px)}66%{transform:translate(-20px,50px)}}
+@keyframes orbFloat2{0%,100%{transform:translate(0,0)}33%{transform:translate(-30px,-40px)}66%{transform:translate(20px,-20px)}}
+
+/* ══ NAV ══ */
+nav{
+  position:fixed;top:0;left:0;right:0;z-index:100;
+  background:var(--nav-bg);border-bottom:1px solid var(--border);
+  backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);
+  animation:navSlideDown .6s ease both;
+}
+@keyframes navSlideDown{from{transform:translateY(-100%);opacity:0}to{transform:none;opacity:1}}
+.nav-inner{
+  max-width:1100px;margin:0 auto;padding:0 24px;
+  height:60px;display:flex;align-items:center;justify-content:space-between;gap:12px;
+}
+.nav-logo{
+  font-family:var(--font-display);font-size:20px;font-weight:800;
+  letter-spacing:-0.5px;color:var(--text);display:flex;align-items:center;gap:10px;flex-shrink:0;
+}
+.nav-logo-dot{width:8px;height:8px;border-radius:50%;background:var(--accent);box-shadow:0 0 10px var(--accent);animation:pulse 2s infinite;}
+.nav-links{display:flex;align-items:center;gap:6px;}
+.nav-links a{
+  color:var(--text2);font-size:14px;padding:8px 14px;border-radius:var(--radius-sm);
+  transition:color var(--transition),background var(--transition);
+  white-space:nowrap;min-height:40px;display:inline-flex;align-items:center;
+}
+.nav-links a:hover{color:var(--text);background:var(--bg3);}
+#theme-toggle{
+  background:var(--bg3);border:1px solid var(--border2);color:var(--text2);
+  border-radius:var(--radius-sm);padding:8px 14px;font-size:13px;cursor:pointer;
+  transition:all var(--transition);font-family:var(--font-body);white-space:nowrap;min-height:40px;
+}
+#theme-toggle:hover{color:var(--text);border-color:var(--accent-border);}
+.nav-burger{
+  display:none;flex-direction:column;justify-content:center;align-items:center;
+  gap:5px;width:40px;height:40px;background:var(--bg3);border:1px solid var(--border2);
+  border-radius:var(--radius-sm);cursor:pointer;flex-shrink:0;padding:0;
+  transition:border-color var(--transition);
+}
+.nav-burger:hover{border-color:var(--accent-border);}
+.nav-burger span{display:block;width:18px;height:2px;background:var(--text2);border-radius:2px;transition:transform .3s ease,opacity .3s ease;}
+.nav-burger.open span:nth-child(1){transform:translateY(7px) rotate(45deg);}
+.nav-burger.open span:nth-child(2){opacity:0;}
+.nav-burger.open span:nth-child(3){transform:translateY(-7px) rotate(-45deg);}
+.nav-mobile{
+  display:none;position:fixed;top:60px;left:0;right:0;
+  background:var(--nav-bg);border-bottom:1px solid var(--border);
+  backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);
+  padding:12px 16px 16px;flex-direction:column;gap:4px;z-index:99;
+}
+.nav-mobile.open{display:flex;}
+.nav-mobile a,.nav-mobile button{
+  color:var(--text2);font-size:15px;padding:12px 16px;border-radius:var(--radius-sm);
+  transition:color var(--transition),background var(--transition);
+  border:none;background:transparent;text-align:left;cursor:pointer;
+  font-family:var(--font-body);width:100%;display:block;
+}
+.nav-mobile a:hover,.nav-mobile button:hover{color:var(--text);background:var(--bg3);}
+.nav-mobile .theme-btn-mobile{background:var(--bg3);border:1px solid var(--border2)!important;color:var(--text2);margin-top:8px;}
+
+/* ══ LAYOUT ══ */
+section{position:relative;z-index:1;}
+.container{max-width:1100px;margin:0 auto;padding:0 28px;}
+
+/* ══ HERO ══ */
+#hero{min-height:100svh;padding:100px 28px 80px;display:flex;align-items:center;justify-content:center;text-align:center;}
+.hero-eyebrow{
+  display:inline-flex;align-items:center;gap:8px;
+  background:var(--accent-dim);border:1px solid var(--accent-border);
+  color:var(--accent);font-size:12px;font-weight:600;letter-spacing:1.5px;text-transform:uppercase;
+  padding:7px 18px;border-radius:99px;margin-bottom:28px;font-family:var(--font-mono);
+  animation:heroFadeUp .8s .1s ease both;
+}
+.hero-eyebrow span{width:6px;height:6px;border-radius:50%;background:var(--accent);animation:pulse 2s infinite;}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
+.hero-title{
+  font-family:var(--font-display);font-size:clamp(40px,8vw,88px);font-weight:800;
+  line-height:1.05;letter-spacing:-2px;color:var(--text);margin-bottom:12px;
+  animation:heroFadeUp .8s .2s ease both;
+}
+.hero-title .accent{
+  background:linear-gradient(135deg,var(--accent),#a78bfa,#6c8fff);
+  background-size:200% 200%;
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;
+  animation:gradientShift 4s ease infinite;
+}
+@keyframes gradientShift{0%,100%{background-position:0% 50%}50%{background-position:100% 50%}}
+.hero-slogan{font-family:var(--font-mono);font-size:14px;color:var(--text3);letter-spacing:0.5px;margin-bottom:20px;animation:heroFadeUp .8s .3s ease both;}
+.hero-sub{font-size:clamp(16px,2vw,19px);color:var(--text2);max-width:520px;margin:0 auto 44px;font-weight:300;line-height:1.8;animation:heroFadeUp .8s .4s ease both;}
+.hero-actions{display:flex;gap:14px;justify-content:center;flex-wrap:wrap;animation:heroFadeUp .8s .5s ease both;}
+@keyframes heroFadeUp{from{opacity:0;transform:translateY(30px)}to{opacity:1;transform:none}}
+.platform-badges{display:flex;gap:10px;justify-content:center;margin-top:28px;flex-wrap:wrap;animation:heroFadeUp .8s .6s ease both;}
+.badge{
+  display:flex;align-items:center;gap:6px;background:var(--card);border:1px solid var(--card-border);
+  color:var(--text2);font-size:13px;padding:6px 16px;border-radius:99px;font-family:var(--font-mono);
+  transition:border-color .2s,transform .2s;
+}
+.badge:hover{border-color:var(--accent-border);transform:translateY(-2px);}
+.badge-dot{width:6px;height:6px;border-radius:50%;background:var(--green);animation:pulse 2s infinite;}
+
+/* ══ BUTTONS ══ */
+.btn{
+  display:inline-flex;align-items:center;gap:10px;
+  font-family:var(--font-body);font-size:15px;font-weight:500;
+  padding:14px 30px;border-radius:var(--radius-sm);
+  border:1px solid transparent;cursor:pointer;transition:all .2s ease;
+  text-decoration:none;min-height:48px;
+}
+.btn-primary{background:var(--accent);color:#fff;border-color:var(--accent);}
+.btn-primary:hover{background:#7a9aff;transform:translateY(-2px);box-shadow:0 10px 30px #6c8fff40;}
+.btn-ghost{background:var(--bg3);color:var(--text2);border-color:var(--border2);}
+.btn-ghost:hover{color:var(--text);border-color:var(--accent-border);background:var(--bg2);transform:translateY(-2px);}
+.btn svg{width:16px;height:16px;flex-shrink:0;}
+
+/* ══ FEATURES ══ */
+#features{padding:100px 0;}
+.section-label{font-family:var(--font-mono);font-size:12px;font-weight:500;color:var(--accent);letter-spacing:2px;text-transform:uppercase;margin-bottom:14px;}
+.section-title{font-family:var(--font-display);font-size:clamp(30px,5vw,48px);font-weight:700;letter-spacing:-1px;color:var(--text);margin-bottom:16px;line-height:1.15;}
+.section-sub{font-size:17px;color:var(--text2);max-width:480px;font-weight:300;line-height:1.75;}
+.features-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-top:56px;}
+.feat-card{
+  background:var(--card);border:1px solid var(--card-border);
+  border-radius:var(--radius-md);padding:28px;
+  transition:border-color .25s,transform .25s,box-shadow .25s;
+  position:relative;overflow:hidden;
+}
+.feat-card::after{
+  content:'';position:absolute;inset:0;
+  background:radial-gradient(circle at 50% 0%,#6c8fff08 0%,transparent 60%);
+  opacity:0;transition:opacity .3s;pointer-events:none;
+}
+.feat-card:hover{border-color:var(--accent-border);transform:translateY(-5px);box-shadow:0 16px 48px #6c8fff12;}
+.feat-card:hover::after{opacity:1;}
+.feat-icon{
+  width:48px;height:48px;background:var(--accent-dim);border:1px solid var(--accent-border);
+  border-radius:var(--radius-sm);display:flex;align-items:center;justify-content:center;
+  margin-bottom:20px;color:var(--accent);transition:transform .25s,box-shadow .25s;
+}
+.feat-card:hover .feat-icon{transform:scale(1.1);box-shadow:0 0 20px #6c8fff22;}
+.feat-title{font-family:var(--font-display);font-size:17px;font-weight:700;color:var(--text);margin-bottom:10px;}
+.feat-desc{font-size:15px;color:var(--text2);line-height:1.75;}
+
+/* ══ SCREENSHOTS ══ */
+#screenshots{padding:100px 0;}
+.screenshots-header{text-align:center;margin-bottom:56px;}
+.screenshots-header .section-sub{margin:0 auto;}
+.shots-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:20px;}
+.shot-card{
+  background:var(--card);border:1px solid var(--card-border);
+  border-radius:var(--radius-md);overflow:hidden;
+  transition:border-color .25s,transform .25s,box-shadow .25s;
+  aspect-ratio:16/10;display:flex;flex-direction:column;cursor:zoom-in;
+}
+.shot-card:hover{border-color:var(--accent-border);transform:translateY(-4px) scale(1.01);box-shadow:0 16px 48px #0008;}
+.shot-img-wrap{flex:1;overflow:hidden;position:relative;}
+.shot-img-wrap img{width:100%;height:100%;object-fit:cover;transition:transform .4s ease;}
+.shot-card:hover .shot-img-wrap img{transform:scale(1.04);}
+.shot-img-wrap::after{
+  content:'⤢';position:absolute;bottom:10px;right:12px;
+  background:#0009;color:#fff;font-size:18px;width:34px;height:34px;border-radius:50%;
+  display:flex;align-items:center;justify-content:center;
+  opacity:0;transition:opacity .25s;backdrop-filter:blur(4px);
+}
+.shot-card:hover .shot-img-wrap::after{opacity:1;}
+.shot-label{
+  padding:13px 18px;border-top:1px solid var(--card-border);
+  font-size:13px;color:var(--text2);font-family:var(--font-mono);display:flex;align-items:center;gap:8px;
+}
+.shot-num{background:var(--bg3);border:1px solid var(--border);color:var(--text3);font-size:11px;padding:2px 8px;border-radius:4px;}
+
+/* ══ LIGHTBOX ══ */
+.lightbox{
+  position:fixed;inset:0;z-index:999;background:#000c;
+  backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);
+  display:flex;align-items:center;justify-content:center;
+  opacity:0;pointer-events:none;transition:opacity .3s ease;padding:20px;
+}
+.lightbox.open{opacity:1;pointer-events:all;}
+.lightbox-img{
+  max-width:90vw;max-height:88vh;border-radius:var(--radius-md);
+  box-shadow:0 32px 80px #000a;
+  transform:scale(.92);transition:transform .35s cubic-bezier(.34,1.56,.64,1),opacity .15s ease;
+  object-fit:contain;
+}
+.lightbox.open .lightbox-img{transform:scale(1);}
+.lightbox-close{
+  position:fixed;top:20px;right:24px;width:44px;height:44px;border-radius:50%;
+  background:#ffffff18;border:1px solid #ffffff22;color:#fff;font-size:22px;cursor:pointer;
+  display:flex;align-items:center;justify-content:center;
+  transition:background .2s,transform .2s;backdrop-filter:blur(8px);
+}
+.lightbox-close:hover{background:#ffffff30;transform:scale(1.1);}
+.lightbox-caption{
+  position:fixed;bottom:24px;left:50%;transform:translateX(-50%);
+  background:#000a;color:#ddd;font-size:13px;font-family:var(--font-mono);
+  padding:8px 20px;border-radius:99px;backdrop-filter:blur(8px);
+  white-space:nowrap;border:1px solid #ffffff11;
+}
+.lightbox-nav{
+  position:fixed;top:50%;transform:translateY(-50%);width:48px;height:48px;border-radius:50%;
+  background:#ffffff14;border:1px solid #ffffff22;color:#fff;font-size:28px;cursor:pointer;
+  display:flex;align-items:center;justify-content:center;
+  transition:background .2s;backdrop-filter:blur(8px);line-height:1;
+}
+.lightbox-nav:hover{background:#ffffff28;}
+.lightbox-prev{left:20px;}
+.lightbox-next{right:20px;}
+
+/* ══ HOW IT WORKS ══ */
+#how{padding:100px 0;}
+.how-inner{display:grid;grid-template-columns:1fr 1fr;gap:80px;align-items:center;}
+.steps{display:flex;flex-direction:column;gap:32px;}
+.step{display:flex;gap:20px;align-items:flex-start;transition:transform .2s;}
+.step:hover{transform:translateX(4px);}
+.step-num{
+  width:38px;height:38px;flex-shrink:0;background:var(--accent-dim);border:1px solid var(--accent-border);
+  border-radius:var(--radius-sm);display:flex;align-items:center;justify-content:center;
+  font-family:var(--font-mono);font-size:13px;font-weight:500;color:var(--accent);
+}
+.step-title{font-family:var(--font-display);font-size:16px;font-weight:700;color:var(--text);margin-bottom:6px;}
+.step-desc{font-size:15px;color:var(--text2);line-height:1.75;}
+.terminal{
+  background:#0a0a0e;border:1px solid var(--border2);border-radius:var(--radius-md);overflow:hidden;
+  font-family:var(--font-mono);box-shadow:var(--shadow);transition:box-shadow .3s;
+}
+.terminal:hover{box-shadow:0 8px 40px #6c8fff12;}
+[data-theme="light"] .terminal{background:#1a1a24;}
+.term-bar{background:#111118;padding:12px 18px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:8px;}
+[data-theme="light"] .term-bar{background:#22222e;}
+.term-dot{width:10px;height:10px;border-radius:50%;}
+.term-body{padding:22px;font-size:13.5px;line-height:2;overflow-x:auto;-webkit-overflow-scrolling:touch;}
+.t-dim{color:#3a3a52;}.t-green{color:#4ade80;}.t-blue{color:#60a5fa;}.t-accent{color:#a78bfa;}.t-white{color:#c8c8e0;}
+.cursor{display:inline-block;width:8px;height:14px;background:var(--accent);vertical-align:middle;animation:blink 1.2s infinite;}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:0}}
+
+/* ══ DOWNLOAD ══ */
+#download{padding:120px 0;}
+.download-box{
+  background:var(--card);border:1px solid var(--card-border);
+  border-radius:var(--radius-lg);padding:72px 48px;
+  text-align:center;position:relative;overflow:hidden;
+}
+.download-box::before{
+  content:'';position:absolute;top:-100px;left:50%;transform:translateX(-50%);
+  width:700px;height:350px;
+  background:radial-gradient(ellipse,#6c8fff1a 0%,transparent 70%);
+  pointer-events:none;animation:glowPulse 4s ease-in-out infinite;
+}
+@keyframes glowPulse{0%,100%{opacity:.7}50%{opacity:1}}
+.download-box .section-title{margin-bottom:12px;}
+.download-box .section-sub{margin:0 auto 44px;max-width:440px;}
+.dl-grid{display:flex;gap:14px;justify-content:center;flex-wrap:wrap;margin-bottom:28px;}
+.dl-btn{
+  display:flex;align-items:center;gap:12px;background:var(--bg3);border:1px solid var(--border2);
+  color:var(--text);border-radius:var(--radius-sm);padding:14px 26px;font-size:14px;
+  transition:all .25s;cursor:pointer;text-decoration:none;min-height:58px;position:relative;overflow:hidden;
+}
+.dl-btn::before{content:'';position:absolute;inset:0;background:linear-gradient(135deg,#6c8fff0a,transparent);opacity:0;transition:opacity .25s;}
+.dl-btn:hover{border-color:var(--accent-border);color:var(--accent);transform:translateY(-2px);box-shadow:0 8px 24px #6c8fff18;}
+.dl-btn:hover::before{opacity:1;}
+.dl-btn-icon{font-size:22px;line-height:1;}
+.dl-btn-text{display:flex;flex-direction:column;align-items:flex-start;}
+.dl-btn-label{font-size:11px;color:var(--text3);font-family:var(--font-mono);letter-spacing:.5px;}
+.dl-btn-os{font-size:15px;font-weight:700;font-family:var(--font-display);}
+.dl-note{font-size:13px;color:var(--text3);font-family:var(--font-mono);}
+
+/* ══ FOOTER ══ */
+footer{border-top:1px solid var(--border);padding:36px 28px;}
+.footer-inner{max-width:1100px;margin:0 auto;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:16px;}
+.footer-logo{font-family:var(--font-display);font-size:16px;font-weight:800;color:var(--text);}
+.footer-links{display:flex;gap:24px;flex-wrap:wrap;}
+.footer-links a{font-size:14px;color:var(--text3);transition:color var(--transition);}
+.footer-links a:hover{color:var(--text);}
+.footer-copy{font-size:13px;color:var(--text3);}
+
+/* ══ REVEAL ══ */
+.reveal{opacity:0;transform:translateY(28px);transition:opacity .7s ease,transform .7s ease;}
+.reveal.visible{opacity:1;transform:none;}
+
+/* ══ RESPONSIVE ══ */
+@media(min-width:1280px){.features-grid{grid-template-columns:repeat(3,1fr);}}
+@media(max-width:1024px){.how-inner{gap:48px;}.features-grid{grid-template-columns:repeat(2,1fr);}.download-box{padding:56px 36px;}}
+@media(max-width:768px){
+  .nav-links{display:none;}.nav-burger{display:flex;}
+  .orb-1{width:320px;height:320px;top:-100px;left:-80px;}.orb-2{width:260px;height:260px;}
+  #hero{padding:88px 20px 64px;}
+  .hero-title{letter-spacing:-1px;}.hero-sub{font-size:15px;margin-bottom:36px;}
+  .hero-actions{gap:10px;}.hero-actions .btn{padding:12px 20px;font-size:14px;}
+  #features,#screenshots,#how{padding:72px 0;}#download{padding:80px 0;}
+  .container{padding:0 20px;}
+  .features-grid{grid-template-columns:repeat(2,1fr);gap:14px;margin-top:40px;}
+  .shots-grid{grid-template-columns:1fr;}.how-inner{grid-template-columns:1fr;gap:40px;}
+  .download-box{padding:40px 24px;}.dl-grid{gap:10px;}.dl-btn{width:100%;max-width:280px;}
+  .footer-inner{flex-direction:column;text-align:center;align-items:center;}.footer-links{justify-content:center;}
+  .lightbox-nav{display:none;}
+}
+@media(max-width:480px){
+  .orb-1{width:240px;height:240px;top:-80px;left:-60px;}.orb-2{width:180px;height:180px;}
+  .nav-inner{padding:0 16px;}.nav-logo{font-size:18px;}
+  #hero{padding:80px 16px 56px;}
+  .hero-title{font-size:clamp(34px,10vw,48px);letter-spacing:-1px;}
+  .hero-slogan{font-size:11px;}.hero-sub{font-size:14px;margin-bottom:32px;}
+  .hero-eyebrow{font-size:10px;padding:5px 12px;}
+  .hero-actions{flex-direction:column;align-items:center;gap:10px;}
+  .hero-actions .btn{width:100%;max-width:300px;justify-content:center;}
+  .platform-badges{gap:8px;}.badge{font-size:11px;padding:4px 12px;}
+  .container{padding:0 16px;}
+  #features,#screenshots,#how{padding:56px 0;}#download{padding:60px 0;}
+  .screenshots-header{margin-bottom:36px;}
+  .features-grid{grid-template-columns:1fr;gap:12px;margin-top:32px;}.feat-card{padding:22px;}
+  .steps{gap:24px;}.step{gap:14px;}.step-num{width:32px;height:32px;font-size:11px;}.step-title{font-size:14px;}
+  .term-body{padding:16px;font-size:11.5px;line-height:1.9;}
+  .section-title{font-size:clamp(24px,7vw,34px);}.section-sub{font-size:14px;}
+  .download-box{padding:32px 16px;border-radius:var(--radius-md);}
+  .dl-btn{width:100%;max-width:100%;}.dl-grid{flex-direction:column;align-items:stretch;}
+  footer{padding:28px 16px;}.footer-inner{gap:12px;}.footer-links{gap:16px;}
+}
+@media(max-width:360px){
+  .hero-title{font-size:clamp(30px,9.5vw,40px);}
+  .hero-actions .btn{padding:11px 16px;font-size:13px;}
+  .dl-btn{padding:12px 16px;}.feat-card{padding:18px;}
+}
+@media print{
+  nav,.orb,body::before,.lightbox{display:none;}
+  body{background:#fff;color:#000;}.reveal{opacity:1;transform:none;}
+}
+</style>
+</head>
+<body>
+
+<div class="orb orb-1"></div>
+<div class="orb orb-2"></div>
+
+<!-- Lightbox -->
+<div class="lightbox" id="lightbox" role="dialog" aria-modal="true" aria-label="Screenshot viewer">
+  <button class="lightbox-close" id="lb-close" aria-label="Fermer">✕</button>
+  <button class="lightbox-nav lightbox-prev" id="lb-prev" aria-label="Précédent">‹</button>
+  <img class="lightbox-img" id="lb-img" src="" alt=""/>
+  <button class="lightbox-nav lightbox-next" id="lb-next" aria-label="Suivant">›</button>
+  <div class="lightbox-caption" id="lb-caption"></div>
+</div>
+
+<!-- Nav -->
+<nav>
+  <div class="nav-inner">
+    <div class="nav-logo"><div class="nav-logo-dot"></div>Droply</div>
+    <div class="nav-links">
+      <a href="#features">Fonctionnalités</a>
+      <a href="#screenshots">Captures</a>
+      <a href="#how">Comment ça marche</a>
+      <a href="#download">Télécharger</a>
+      <button id="theme-toggle" onclick="toggleTheme()">☀ Clair</button>
+    </div>
+    <button class="nav-burger" id="nav-burger" aria-label="Toggle menu" aria-expanded="false">
+      <span></span><span></span><span></span>
+    </button>
+  </div>
+</nav>
+
+<!-- Mobile drawer -->
+<div class="nav-mobile" id="nav-mobile" role="navigation" aria-label="Mobile menu">
+  <a href="#features" onclick="closeMenu()">Fonctionnalités</a>
+  <a href="#screenshots" onclick="closeMenu()">Captures</a>
+  <a href="#how" onclick="closeMenu()">Comment ça marche</a>
+  <a href="#download" onclick="closeMenu()">Télécharger</a>
+  <button class="theme-btn-mobile" onclick="toggleTheme();closeMenu();" id="theme-toggle-mobile">☀ Clair</button>
+</div>
+
+<!-- Hero -->
+<section id="hero">
+  <div>
+    <div class="hero-eyebrow"><span></span>Open Source · Gratuit pour toujours</div>
+    <h1 class="hero-title">Partagez des fichiers.<br><span class="accent">Sans internet.</span></h1>
+    <p class="hero-slogan">No internet. No limits. Just Droply.</p>
+    <p class="hero-sub">The fastest way to share files locally. Lancez l'app, scannez le QR code, c'est fait.</p>
+    <div class="hero-actions">
+      <a href="#download" class="btn btn-primary">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+        Télécharger Droply
+      </a>
+      <a href="https://github.com/devDav65/miniserver" class="btn btn-ghost" target="_blank" rel="noopener">
+        <svg viewBox="0 0 24 24" fill="currentColor" width="16" height="16"><path d="M12 2C6.477 2 2 6.484 2 12.017c0 4.425 2.865 8.18 6.839 9.504.5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.531 1.032 1.531 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0 1 12 6.844a9.59 9.59 0 0 1 2.504.337c1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.202 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.943.359.309.678.92.678 1.855 0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482A10.02 10.02 0 0 0 22 12.017C22 6.484 17.522 2 12 2z"/></svg>
+        Voir sur GitHub
+      </a>
+    </div>
+    <div class="platform-badges">
+      <div class="badge"><div class="badge-dot"></div>Windows</div>
+      <div class="badge"><div class="badge-dot"></div>macOS</div>
+      <div class="badge"><div class="badge-dot"></div>Linux</div>
+    </div>
+  </div>
+</section>
+
+<!-- Features -->
+<section id="features">
+  <div class="container">
+    <div class="reveal">
+      <p class="section-label">Pourquoi Droply</p>
+      <h2 class="section-title">Conçu pour le local.<br>Pensé pour tout le monde.</h2>
+      <p class="section-sub">Pas de compte, pas de cloud, pas de latence. Juste votre réseau local qui fait le travail.</p>
+    </div>
+    <div class="features-grid">
+      <div class="feat-card reveal">
+        <div class="feat-icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.55a11 11 0 0 1 14.08 0"/><path d="M1.42 9a16 16 0 0 1 21.16 0"/><path d="M8.53 16.11a6 6 0 0 1 6.95 0"/><circle cx="12" cy="20" r="1"/></svg></div>
+        <div class="feat-title">Wi-Fi, sans internet</div>
+        <div class="feat-desc">Fonctionne entièrement sur votre réseau local. Aucune donnée ne quitte jamais votre routeur. Partagez à pleine vitesse Wi-Fi sans passer par le cloud.</div>
+      </div>
+      <div class="feat-card reveal">
+        <div class="feat-icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg></div>
+        <div class="feat-title">Transferts instantanés</div>
+        <div class="feat-desc">Envoyez des fichiers à pleine vitesse réseau. Aucune compression, aucune perte de qualité — vos fichiers arrivent exactement tels qu'envoyés, en quelques secondes.</div>
+      </div>
+      <div class="feat-card reveal">
+        <div class="feat-icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg></div>
+        <div class="feat-title">Privé par conception</div>
+        <div class="feat-desc">Zéro télémétrie. Zéro analytique. Aucun compte requis. Tout reste sur votre réseau — entièrement hors ligne, entièrement privé.</div>
+      </div>
+      <div class="feat-card reveal">
+        <div class="feat-icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg></div>
+        <div class="feat-title">Journal en temps réel</div>
+        <div class="feat-desc">Observez chaque transfert en direct. Horodatage, adresse IP, nom de fichier — le journal vous garde en contrôle de tout ce qui se passe.</div>
+      </div>
+      <div class="feat-card reveal">
+        <div class="feat-icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg></div>
+        <div class="feat-title">Glisser-déposer</div>
+        <div class="feat-desc">Déposez des fichiers directement dans le navigateur. Barre de progression en temps réel, retour instantané. N'importe quel appareil, n'importe quel navigateur — aucune extension requise.</div>
+      </div>
+      <div class="feat-card reveal">
+        <div class="feat-icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg></div>
+        <div class="feat-title">Connexion par QR code</div>
+        <div class="feat-desc">Scannez le QR code affiché dans l'app. Votre téléphone ouvre le navigateur de fichiers instantanément — sans saisie, sans jumelage, sans app à installer.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Screenshots -->
+<section id="screenshots">
+  <div class="container">
+    <div class="screenshots-header reveal">
+      <p class="section-label">Captures d'écran</p>
+      <h2 class="section-title">Épuré. Rapide. Minimal.</h2>
+      <p class="section-sub">Une app de bureau qui s'efface et vous laisse partager.</p>
+    </div>
+    <div class="shots-grid">
+      <div class="shot-card reveal" data-index="0">
+        <div class="shot-img-wrap"><img src="file.png" alt="Files tab — main view"/></div>
+        <div class="shot-label"><span class="shot-num">01</span>Onglet Fichiers — vue principale</div>
+      </div>
+      <div class="shot-card reveal" data-index="1">
+        <div class="shot-img-wrap"><img src="qrcode.png" alt="QR Code — connexion mobile"/></div>
+        <div class="shot-label"><span class="shot-num">02</span>QR Code — connexion mobile</div>
+      </div>
+      <div class="shot-card reveal" data-index="2">
+        <div class="shot-img-wrap"><img src="log.png" alt="Journal de transfert — temps réel"/></div>
+        <div class="shot-label"><span class="shot-num">03</span>Journal de transfert — temps réel</div>
+      </div>
+      <div class="shot-card reveal" data-index="3">
+        <div class="shot-img-wrap"><img src="web.png" alt="Interface web — envoi depuis le navigateur"/></div>
+        <div class="shot-label"><span class="shot-num">04</span>Interface web — envoi depuis le navigateur</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- How it works -->
+<section id="how">
+  <div class="container">
+    <div class="how-inner">
+      <div>
+        <div class="reveal">
+          <p class="section-label">Comment ça marche</p>
+          <h2 class="section-title">Prêt à partager<br>en 30 secondes.</h2>
+        </div>
+        <div class="steps">
+          <div class="step reveal">
+            <div class="step-num">01</div>
+            <div>
+              <div class="step-title">Lancer Droply</div>
+              <div class="step-desc">Double-cliquez sur l'app. Le serveur démarre automatiquement sur votre réseau local. Aucune configuration nécessaire.</div>
+            </div>
+          </div>
+          <div class="step reveal">
+            <div class="step-num">02</div>
+            <div>
+              <div class="step-title">Scanner le QR code</div>
+              <div class="step-desc">Ouvrez l'onglet QR Code et scannez avec votre téléphone connecté au même Wi-Fi. Le navigateur s'ouvre instantanément.</div>
+            </div>
+          </div>
+          <div class="step reveal">
+            <div class="step-num">03</div>
+            <div>
+              <div class="step-title">Déposer et partager</div>
+              <div class="step-desc">Glissez des fichiers dans la fenêtre du navigateur. Ils apparaissent immédiatement dans l'app bureau et sont accessibles à tous sur le réseau.</div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="reveal">
+        <div class="terminal">
+          <div class="term-bar">
+            <div class="term-dot" style="background:#ff5f57"></div>
+            <div class="term-dot" style="background:#febc2e"></div>
+            <div class="term-dot" style="background:#28c840"></div>
+          </div>
+          <div class="term-body">
+            <div><span class="t-dim">$ </span><span class="t-white">./Droply</span></div>
+            <div><span class="t-green">✓</span> <span class="t-dim">Server started</span></div>
+            <div><span class="t-blue">→</span> <span class="t-dim">Local: </span><span class="t-accent">http://192.168.1.42:8080</span></div>
+            <div><span class="t-blue">→</span> <span class="t-dim">Mode: </span><span class="t-white">open</span></div>
+            <div>&nbsp;</div>
+            <div><span class="t-dim">[09:12:44] </span><span class="t-green">UPLOAD  </span><span class="t-dim"> 192.168.1.8 · report.pdf</span></div>
+            <div><span class="t-dim">[09:12:51] </span><span class="t-blue">DOWNLOAD</span><span class="t-dim"> 192.168.1.12 · report.pdf</span></div>
+            <div><span class="t-dim">[09:13:02] </span><span class="t-green">UPLOAD  </span><span class="t-dim"> 192.168.1.8 · photo.jpg</span></div>
+            <div><span class="t-dim">[09:13:10] </span><span class="t-blue">DOWNLOAD</span><span class="t-dim"> 192.168.1.5 · photo.jpg</span></div>
+            <div>&nbsp;</div>
+            <div><span class="t-dim">Waiting… </span><span class="cursor"></span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Download -->
+<section id="download">
+  <div class="container">
+    <div class="download-box reveal">
+      <p class="section-label">Téléchargement</p>
+      <h2 class="section-title">Gratuit. Toujours.</h2>
+      <p class="section-sub">Sans inscription. Sans abonnement. Téléchargez, lancez, partagez.</p>
+      <div class="dl-grid">
+        <a href="https://github.com/devDav65/miniserver/releases/latest/download/Droply-windows.exe" class="dl-btn">
+          <img src="windows.svg" alt="Windows" style="width:28px;height:28px;object-fit:contain;flex-shrink:0"/>
+          <span class="dl-btn-text"><span class="dl-btn-label">TÉLÉCHARGER POUR</span><span class="dl-btn-os">Windows</span></span>
+        </a>
+        <a href="https://github.com/devDav65/miniserver/releases/latest/download/Droply-macos" class="dl-btn">
+          <img src="mac.svg" alt="macOS" style="width:28px;height:28px;object-fit:contain;flex-shrink:0"/>
+          <span class="dl-btn-text"><span class="dl-btn-label">TÉLÉCHARGER POUR</span><span class="dl-btn-os">macOS</span></span>
+        </a>
+        <a href="https://github.com/devDav65/miniserver/releases/latest/download/Droply-linux" class="dl-btn">
+          <img src="linux.png" alt="Linux" style="width:28px;height:28px;object-fit:contain;flex-shrink:0"/>
+          <span class="dl-btn-text"><span class="dl-btn-label">TÉLÉCHARGER POUR</span><span class="dl-btn-os">Linux</span></span>
+        </a>
+      </div>
+      <p class="dl-note">v1.0.9 · Licence MIT · Open Source</p>
+    </div>
+  </div>
+</section>
+
+<!-- Footer -->
+<footer>
+  <div class="footer-inner">
+    <div class="footer-logo">Droply</div>
+    <div class="footer-links">
+      <a href="https://github.com/devDav65/miniserver" target="_blank" rel="noopener">GitHub</a>
+      <a href="https://github.com/devDav65/miniserver/issues" target="_blank" rel="noopener">Signaler un bug</a>
+      <a href="https://github.com/devDav65/miniserver/releases" target="_blank" rel="noopener">Changelog</a>
+    </div>
+    <div class="footer-copy">© 2026 Droply — devDav</div>
+  </div>
+</footer>
+
+<script>
+/* ── Theme ── */
+function syncThemeBtn(){
+  const dark = document.documentElement.dataset.theme === 'dark';
+  const label = dark ? '☀ Clair' : '☾ Sombre';
+  const t = document.getElementById('theme-toggle');
+  const tm = document.getElementById('theme-toggle-mobile');
+  if(t) t.textContent = label;
+  if(tm) tm.textContent = label;
+}
+function toggleTheme(){
+  const html = document.documentElement;
+  html.dataset.theme = html.dataset.theme === 'dark' ? 'light' : 'dark';
+  localStorage.setItem('droply-theme', html.dataset.theme);
+  syncThemeBtn();
+}
+const saved = localStorage.getItem('droply-theme');
+if(saved){ document.documentElement.dataset.theme = saved; }
+syncThemeBtn();
+
+/* ── Mobile menu ── */
+const burger = document.getElementById('nav-burger');
+const mobileMenu = document.getElementById('nav-mobile');
+function closeMenu(){
+  mobileMenu.classList.remove('open');
+  burger.classList.remove('open');
+  burger.setAttribute('aria-expanded','false');
+  document.body.style.overflow = '';
+}
+burger.addEventListener('click', () => {
+  const isOpen = mobileMenu.classList.toggle('open');
+  burger.classList.toggle('open', isOpen);
+  burger.setAttribute('aria-expanded', String(isOpen));
+  document.body.style.overflow = isOpen ? 'hidden' : '';
+});
+document.addEventListener('click', (e) => {
+  if(!burger.contains(e.target) && !mobileMenu.contains(e.target)) closeMenu();
+});
+window.addEventListener('resize', () => { if(window.innerWidth > 768) closeMenu(); });
+
+/* ── Reveal on scroll ── */
+const obs = new IntersectionObserver((entries) => {
+  entries.forEach(e => {
+    if(e.isIntersecting){ e.target.classList.add('visible'); obs.unobserve(e.target); }
+  });
+}, {threshold:0.1});
+document.querySelectorAll('.reveal').forEach((el, i) => {
+  el.style.transitionDelay = (i % 5) * 80 + 'ms';
+  obs.observe(el);
+});
+
+/* ── Lightbox ── */
+const shots = Array.from(document.querySelectorAll('.shot-card'));
+const lb    = document.getElementById('lightbox');
+const lbImg = document.getElementById('lb-img');
+const lbCap = document.getElementById('lb-caption');
+let lbIdx   = 0;
+
+function openLb(idx){
+  lbIdx = idx;
+  const card  = shots[idx];
+  const img   = card.querySelector('img');
+  const label = card.querySelector('.shot-label').textContent.trim();
+  lbImg.src   = img.src;
+  lbImg.alt   = img.alt;
+  lbCap.textContent = label;
+  lb.classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
+function closeLb(){
+  lb.classList.remove('open');
+  document.body.style.overflow = '';
+}
+function lbGo(dir){
+  lbIdx = (lbIdx + dir + shots.length) % shots.length;
+  const card  = shots[lbIdx];
+  const img   = card.querySelector('img');
+  const label = card.querySelector('.shot-label').textContent.trim();
+  lbImg.style.opacity   = '0';
+  lbImg.style.transform = 'scale(.95)';
+  setTimeout(() => {
+    lbImg.src = img.src;
+    lbImg.alt = img.alt;
+    lbCap.textContent = label;
+    lbImg.style.opacity   = '1';
+    lbImg.style.transform = 'scale(1)';
+  }, 150);
+}
+lbImg.style.transition = 'opacity .15s ease, transform .15s ease';
+
+shots.forEach((card, idx) => card.addEventListener('click', () => openLb(idx)));
+document.getElementById('lb-close').addEventListener('click', closeLb);
+document.getElementById('lb-prev').addEventListener('click', () => lbGo(-1));
+document.getElementById('lb-next').addEventListener('click', () => lbGo(1));
+lb.addEventListener('click', (e) => { if(e.target === lb) closeLb(); });
+
+document.addEventListener('keydown', (e) => {
+  if(!lb.classList.contains('open')) return;
+  if(e.key === 'Escape') closeLb();
+  if(e.key === 'ArrowLeft') lbGo(-1);
+  if(e.key === 'ArrowRight') lbGo(1);
+});
+
+// Swipe mobile sur lightbox
+let tx = 0;
+lb.addEventListener('touchstart', (e) => { tx = e.touches[0].clientX; }, {passive:true});
+lb.addEventListener('touchend',   (e) => {
+  const dx = e.changedTouches[0].clientX - tx;
+  if(Math.abs(dx) > 50) lbGo(dx < 0 ? 1 : -1);
+});
+</script>
+</body>
+</html>
