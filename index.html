@@ -371,6 +371,57 @@ footer{border-top:1px solid var(--border);padding:36px 28px;}
   nav,.orb,body::before,.lightbox{display:none;}
   body{background:#fff;color:#000;}.reveal{opacity:1;transform:none;}
 }
+/* ══ INSTALLATION ══ */
+#install{padding:100px 0;}
+.install-header{text-align:center;margin-bottom:56px;}
+.install-header .section-sub{margin:0 auto;}
+.install-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:20px;}
+.install-card{
+  background:var(--card);border:1px solid var(--card-border);
+  border-radius:var(--radius-md);padding:28px;
+  transition:border-color .25s,transform .25s,box-shadow .25s;
+}
+.install-card:hover{border-color:var(--accent-border);transform:translateY(-4px);box-shadow:0 16px 48px #6c8fff10;}
+.install-os-header{display:flex;align-items:center;gap:12px;margin-bottom:20px;}
+.install-os-icon{width:32px;height:32px;object-fit:contain;flex-shrink:0;}
+.install-os-name{font-family:var(--font-display);font-size:18px;font-weight:700;color:var(--text);}
+.install-steps{
+  list-style:none;display:flex;flex-direction:column;gap:10px;
+  margin-bottom:16px;padding:0;
+}
+.install-steps li{
+  font-size:14px;color:var(--text2);line-height:1.6;
+  padding-left:20px;position:relative;
+}
+.install-steps li::before{
+  content:counter(step);counter-increment:step;
+  position:absolute;left:0;top:1px;
+  font-family:var(--font-mono);font-size:11px;color:var(--accent);font-weight:600;
+}
+.install-steps{counter-reset:step;}
+.install-steps code{
+  font-family:var(--font-mono);font-size:12px;
+  background:var(--bg3);border:1px solid var(--border);
+  color:var(--accent);padding:2px 7px;border-radius:4px;
+}
+.install-terminal{
+  background:#0a0a0e;border:1px solid var(--border2);
+  border-radius:var(--radius-sm);overflow:hidden;
+  font-family:var(--font-mono);margin:14px 0;
+}
+[data-theme="light"] .install-terminal{background:#1a1a24;}
+.iterm-bar{
+  background:#111118;padding:8px 14px;
+  border-bottom:1px solid var(--border);
+  display:flex;align-items:center;gap:6px;
+}
+.iterm-bar span{width:10px;height:10px;border-radius:50%;display:inline-block;}
+.iterm-body{padding:14px 16px;font-size:12.5px;line-height:1.9;}
+.install-note{font-size:12px;color:var(--text3);font-family:var(--font-mono);margin-top:10px;}
+
+/* Responsive install */
+@media(max-width:1024px){.install-grid{grid-template-columns:repeat(2,1fr);}}
+@media(max-width:600px){.install-grid{grid-template-columns:1fr;}#install{padding:56px 0;}}
 </style>
 </head>
 <body>
@@ -565,6 +616,82 @@ footer{border-top:1px solid var(--border);padding:36px 28px;}
           </div>
         </div>
       </div>
+    </div>
+  </div>
+</section>
+<!-- Installation -->
+<section id="install">
+  <div class="container">
+    <div class="install-header reveal">
+      <p class="section-label">Installation</p>
+      <h2 class="section-title">Prêt en 30 secondes.</h2>
+      <p class="section-sub">Téléchargez, exécutez — aucune installation complexe.</p>
+    </div>
+    <div class="install-grid">
+
+      <!-- Windows -->
+      <div class="install-card reveal">
+        <div class="install-os-header">
+          <img src="windows.svg" alt="Windows" class="install-os-icon"/>
+          <span class="install-os-name">Windows</span>
+        </div>
+        <ol class="install-steps">
+          <li>Téléchargez <code>Droply-windows.exe</code></li>
+          <li>Double-cliquez sur le fichier</li>
+          <li>Si Windows affiche un avertissement, cliquez <strong>« Informations complémentaires »</strong> puis <strong>« Exécuter quand même »</strong></li>
+          <li>Droply démarre ✅</li>
+        </ol>
+      </div>
+
+      <!-- macOS -->
+      <div class="install-card reveal">
+        <div class="install-os-header">
+          <img src="mac.svg" alt="macOS" class="install-os-icon" style="filter:invert(1)"/>
+          <span class="install-os-name">macOS</span>
+        </div>
+        <ol class="install-steps">
+          <li>Téléchargez <code>Droply-macos</code></li>
+          <li>Ouvrez un Terminal et exécutez :</li>
+        </ol>
+        <div class="install-terminal">
+          <div class="iterm-bar">
+            <span style="background:#ff5f57"></span>
+            <span style="background:#febc2e"></span>
+            <span style="background:#28c840"></span>
+          </div>
+          <div class="iterm-body">
+            <div><span class="t-dim">$ </span><span class="t-white">xattr -cr ~/Downloads/Droply-macos</span></div>
+            <div><span class="t-dim">$ </span><span class="t-white">chmod +x ~/Downloads/Droply-macos</span></div>
+            <div><span class="t-dim">$ </span><span class="t-white">~/Downloads/Droply-macos</span></div>
+          </div>
+        </div>
+        <p class="install-note">⚠️ Nécessaire car l'app n'est pas signée Apple.</p>
+      </div>
+
+      <!-- Linux -->
+      <div class="install-card reveal">
+        <div class="install-os-header">
+          <img src="linux.png" alt="Linux" class="install-os-icon"/>
+          <span class="install-os-name">Linux</span>
+        </div>
+        <ol class="install-steps">
+          <li>Téléchargez <code>Droply-linux</code></li>
+          <li>Ouvrez un Terminal et exécutez :</li>
+        </ol>
+        <div class="install-terminal">
+          <div class="iterm-bar">
+            <span style="background:#ff5f57"></span>
+            <span style="background:#febc2e"></span>
+            <span style="background:#28c840"></span>
+          </div>
+          <div class="iterm-body">
+            <div><span class="t-dim">$ </span><span class="t-white">chmod +x ~/Downloads/Droply-linux</span></div>
+            <div><span class="t-dim">$ </span><span class="t-white">~/Downloads/Droply-linux</span></div>
+          </div>
+        </div>
+        <p class="install-note">💡 Ou clic droit → Propriétés → Autoriser l'exécution.</p>
+      </div>
+
     </div>
   </div>
 </section>
